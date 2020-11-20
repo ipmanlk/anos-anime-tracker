@@ -15,6 +15,8 @@ const getRequestOptions = () => {
 };
 
 const getAnimeList = async (bypassCache = false) => {
+	const token = require("../../tokens/anilist.json");
+
 	if (bypassCache && fs.existsSync(cacheFile)) {
 		fs.unlinkSync(cacheFile);
 	}

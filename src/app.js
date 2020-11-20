@@ -9,6 +9,8 @@ const port = 3000;
 app.use(express.json());
 app.set("view engine", "ejs");
 
+app.use("/", express.static(`${__dirname}/public`));
+
 app.get("/", async (req, res) => {
 	const animeList = await api.getAnimeList();
 	res.render(`${__dirname}/public/index`, {
