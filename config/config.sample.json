@@ -1,0 +1,10 @@
+{
+  "mal": {
+    "clientId": "",
+    "clientSecret": ""
+  },
+  "anilist": {
+    "clientId": "",
+    "clientSecret": ""
+  }
+}

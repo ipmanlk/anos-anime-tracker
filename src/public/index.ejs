@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Anime List</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <style>
+    .tab-pane {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    .anime-list-icon {
+      height: 80px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#current">Current</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#planning">Planning</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#completed">Completed</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#dropped">Dropped</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#paused">Paused</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#repeating">Repeating</a>
+      </li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+      <div class="tab-pane container active" id="current">
+        <ul class="list-group">
+          <% animeList.CURRENT.forEach(function(i){ %>
+          <li class="list-group-item">
+            <img src="https://tinyurl.com/y5wyrbft" class="anime-list-icon" />
+            <%= i.media.title.english %>
+          </li>
+          <% }); %>
+        </ul>
+      </div>
+      <div class="tab-pane container fade" id="planning"></div>
+
+    </div>
+  </div>
+</body>
+
+</html>
