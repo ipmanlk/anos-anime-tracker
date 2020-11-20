@@ -1,15 +1,17 @@
 const fs = require("fs");
 const fetch = require("node-fetch");
-const token = require("../../tokens/anilist.json");
 const cacheFile = `${__dirname}/cache/animeList.json`;
 
-const requestOptions = {
-	method: "post",
-	headers: {
-		Authorization: "Bearer " + token.access_token,
-		"Content-Type": "application/json",
-		Accept: "application/json",
-	},
+const getRequestOptions = () => {
+	const token = require("../../tokens/anilist.json");
+	return {
+		method: "post",
+		headers: {
+			Authorization: "Bearer " + token.access_token,
+			"Content-Type": "application/json",
+			Accept: "application/json",
+		},
+	};
 };
 
 const getAnimeList = async (bypassCache = false) => {
@@ -76,7 +78,7 @@ const getAnimeList = async (bypassCache = false) => {
 		}`;
 
 			const res = await fetch("https://graphql.anilist.co", {
-				...requestOptions,
+				...getRequestOptions(),
 				body: JSON.stringify({ query }),
 			});
 			const parsedResponse = await res.json();
@@ -105,7 +107,7 @@ const updateProgress = async (mediaId, episodes, progress) => {
     }
 }`;
 	const res = await fetch("https://graphql.anilist.co", {
-		...requestOptions,
+		...getRequestOptions(),
 		body: JSON.stringify({ query: query }),
 	});
 
