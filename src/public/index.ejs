@@ -20,6 +20,10 @@
       height: 80px;
       margin-right: 10px;
     }
+
+    .list-group-item {
+      padding: 0;
+    }
   </style>
 </head>
 
@@ -52,17 +56,71 @@
       <div class="tab-pane container active" id="current">
         <ul class="list-group">
           <% animeList.CURRENT.forEach(function(i){ %>
-          <li class="list-group-item">
-            <img src="https://tinyurl.com/y5wyrbft" class="anime-list-icon" />
-            <%= i.media.title.english %>
+          <li class="list-group-item" data-anime="<%= JSON.stringify(i) %>">
+            <div class="d-flex flex-row align-items-center">
+              <div class="mr-auto">
+                <img src="<%= i.media.coverImage.medium %>" class="anime-list-icon" />
+                <%= i.media.title.english || i.media.title.romaji %>
+              </div>
+              <div class="p-3" id="<%= i.media.id %>Progress">
+                <%= i.progress %>/<%= i.media.episodes %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-primary" onclick="decProgress(this)">
+                  -
+                </button>
+                <button class="btn btn-primary" onclick="incProgress(this)">
+                  +
+                </button>
+              </div>
+            </div>
           </li>
           <% }); %>
         </ul>
       </div>
-      <div class="tab-pane container fade" id="planning"></div>
 
     </div>
   </div>
+
+  <script>
+    const requestOptions = {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+
+    async function incProgress(btn) {
+      const listItem = $(btn).parent().parent().parent();
+      const mediaData = listItem.data("anime");
+
+      if (mediaData.progress != mediaData.media.episodes) {
+
+        const res = await fetch("/update_progress", {
+          ...requestOptions,
+          body: JSON.stringify({
+            mediaId: mediaData.media.id,
+            episodes: mediaData.media.episodes,
+            malId: mediaData.media.idMal,
+            progress: parseInt(mediaData.progress) + 1
+          }),
+        });
+
+        const parsedResponse = await res.json();
+        const data = parsedResponse.data;
+
+        console.log(data);
+
+      }
+    }
+
+    function decProgress(btn) {
+      console.log(e);
+
+    }
+  </script>
+
 </body>
 
 </html>

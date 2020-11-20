@@ -3,7 +3,7 @@ const pkceChallenge = require("pkce-challenge");
 const readline = require("readline");
 const { writeFileSync } = require("fs");
 const querystring = require("querystring");
-const config = require(`${process.cwd()}/config/config.json`);
+const config = require("../../config/config.json");
 
 const rl = readline.createInterface({
 	input: process.stdin,
@@ -76,6 +76,35 @@ const generateToken = async () => {
 	writeFileSync(`${process.cwd()}/tokens/mal.json`, JSON.stringify(token));
 };
 
+const refreshToken = async () => {
+	const url = "https://myanimelist.net/v1/oauth2/token";
+	const token = require("../../tokens/mal.json");
+
+	const options = {
+		method: "POST",
+		headers: {
+			"content-type": "application/x-www-form-urlencoded",
+		},
+		body: querystring.stringify({
+			client_id: clientId,
+			client_secret: clientSecret,
+			code: authorizationCode,
+			grant_type: "refresh_token",
+			refresh_token: token.refresh_token,
+		}),
+	};
+
+	const res = await fetch(url, options);
+	const data = await res.json();
+
+	if (!data.access_token || data.access_token.length < 300) {
+		throw new Error(token);
+	}
+
+	writeFileSync(`${process.cwd()}/tokens/mal.json`, JSON.stringify(data));
+};
+
 module.exports = {
 	generateToken,
+	refreshToken,
 };

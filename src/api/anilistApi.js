@@ -3,6 +3,15 @@ const fetch = require("node-fetch");
 const token = require("../../tokens/anilist.json");
 const cacheFile = `${__dirname}/cache/animeList.json`;
 
+const requestOptions = {
+	method: "post",
+	headers: {
+		Authorization: "Bearer " + token.access_token,
+		"Content-Type": "application/json",
+		Accept: "application/json",
+	},
+};
+
 const getAnimeList = async (bypassCache = false) => {
 	if (bypassCache && fs.existsSync(cacheFile)) {
 		fs.unlinkSync(cacheFile);
@@ -35,43 +44,41 @@ const getAnimeList = async (bypassCache = false) => {
 		let lastPage = null;
 
 		while (currentPage != lastPage) {
-			const options = {
-				method: "post",
-				body: JSON.stringify({
-					query: `
-          query { 
-            Page (page: ${currentPage}, perPage: 50) {
-              pageInfo {
-                total
-                currentPage
-                lastPage
-                hasNextPage
-                perPage
-            }
-            
-              mediaList (userName: "${token.username}", type:ANIME, status: ${status}) { # Insert our variables into the query arguments (id) (type: ANIME is hard-coded in the query)
-                id
-                progress
-                status
-                media {
-                  id
-                  episodes
-                  title {
-                    english
-                    romaji
-                  }
-              }
-            }
-          }
-        }`,
-				}),
-				headers: {
-					Authorization: "Bearer " + token.access_token,
-					"Content-Type": "application/json",
-					Accept: "application/json",
-				},
-			};
-			const res = await fetch("https://graphql.anilist.co", options);
+			const query = `
+			query { 
+				Page (page: ${currentPage}, perPage: 50) {
+					pageInfo {
+						total
+						currentPage
+						lastPage
+						hasNextPage
+						perPage
+				}
+				
+					mediaList (userName: "${token.username}", type:ANIME, status: ${status}) { # Insert our variables into the query arguments (id) (type: ANIME is hard-coded in the query)
+						id
+						progress
+						status
+						media {
+							id
+							episodes
+							title {
+								english
+								romaji
+							}
+							coverImage {
+								medium
+							}
+							idMal
+					}
+				}
+			}
+		}`;
+
+			const res = await fetch("https://graphql.anilist.co", {
+				...requestOptions,
+				body: JSON.stringify({ query }),
+			});
 			const parsedResponse = await res.json();
 			const data = parsedResponse.data;
 
@@ -87,6 +94,30 @@ const getAnimeList = async (bypassCache = false) => {
 	return lists;
 };
 
+const updateProgress = async (mediaId, episodes, progress) => {
+	const query = `
+	mutation {
+    SaveMediaListEntry (mediaId: ${mediaId}, progress: ${progress} ${
+		episodes == progress ? ", status:COMPLETED" : ""
+	}) {
+        id
+        progress
+    }
+}`;
+	const res = await fetch("https://graphql.anilist.co", {
+		...requestOptions,
+		body: JSON.stringify({ query: query }),
+	});
+
+	const parsedResponse = await res.json();
+	const data = parsedResponse.data;
+
+	if (data == null) throw new Error("No data found in anilist response!");
+
+	return data;
+};
+
 module.exports = {
 	getAnimeList,
+	updateProgress,
 };
