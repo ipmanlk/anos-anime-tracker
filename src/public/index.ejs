@@ -24,11 +24,6 @@
       padding: 0;
     }
 
-    .tab-content .container {
-      margin-left: 0;
-      margin-right: 0;
-    }
-
     .list-group-item:hover {
       background-color: rgb(211, 211, 211);
     }
@@ -71,7 +66,7 @@
 
     <!-- Tab panes -->
     <div class="tab-content">
-      <div class="tab-pane container active" id="current">
+      <div class="tab-pane active" id="current">
         <ul class="list-group">
           <% animeList.CURRENT.forEach(function(i){ %>
           <li class="list-group-item" data-anime="<%= JSON.stringify(i) %>">
@@ -80,7 +75,11 @@
                 <img src="<%= i.media.coverImage.medium %>" class="anime-list-icon" />
                 <%= i.media.title.english || i.media.title.romaji %>
               </div>
-
+              <div class="p-3">
+                <button class="btn btn-warning" onclick="showAnimeStatusModal(this)">
+                  Status
+                </button>
+              </div>
               <div class="p-3" id="<%= i.media.id %>Progress">
                 <%= i.progress %>/<%= i.media.episodes %>
               </div>
@@ -98,6 +97,160 @@
         </ul>
       </div>
 
+      <div class="tab-pane fade" id="planning">
+        <ul class="list-group">
+          <% animeList.PLANNING.forEach(function(i){ %>
+          <li class="list-group-item" data-anime="<%= JSON.stringify(i) %>">
+            <div class="d-flex flex-row align-items-center">
+              <div class="mr-auto">
+                <img src="<%= i.media.coverImage.medium %>" class="anime-list-icon" />
+                <%= i.media.title.english || i.media.title.romaji %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-warning" onclick="showAnimeStatusModal(this)">
+                  Status
+                </button>
+              </div>
+              <div class="p-3" id="<%= i.media.id %>Progress">
+                <%= i.progress %>/<%= i.media.episodes %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-primary" onclick="updateProgress(this, 'dec')">
+                  -
+                </button>
+                <button class="btn btn-primary" onclick="updateProgress(this, 'inc')">
+                  +
+                </button>
+              </div>
+            </div>
+          </li>
+          <% }); %>
+        </ul>
+      </div>
+
+      <div class="tab-pane fade" id="completed">
+        <ul class="list-group">
+          <% animeList.COMPLETED.forEach(function(i){ %>
+          <li class="list-group-item" data-anime="<%= JSON.stringify(i) %>">
+            <div class="d-flex flex-row align-items-center">
+              <div class="mr-auto">
+                <img src="<%= i.media.coverImage.medium %>" class="anime-list-icon" />
+                <%= i.media.title.english || i.media.title.romaji %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-warning" onclick="showAnimeStatusModal(this)">
+                  Status
+                </button>
+              </div>
+              <div class="p-3" id="<%= i.media.id %>Progress">
+                <%= i.progress %>/<%= i.media.episodes %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-primary" onclick="updateProgress(this, 'dec')">
+                  -
+                </button>
+                <button class="btn btn-primary" onclick="updateProgress(this, 'inc')">
+                  +
+                </button>
+              </div>
+            </div>
+          </li>
+          <% }); %>
+        </ul>
+      </div>
+
+      <div class="tab-pane fade" id="dropped">
+        <ul class="list-group">
+          <% animeList.DROPPED.forEach(function(i){ %>
+          <li class="list-group-item" data-anime="<%= JSON.stringify(i) %>">
+            <div class="d-flex flex-row align-items-center">
+              <div class="mr-auto">
+                <img src="<%= i.media.coverImage.medium %>" class="anime-list-icon" />
+                <%= i.media.title.english || i.media.title.romaji %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-warning" onclick="showAnimeStatusModal(this)">
+                  Status
+                </button>
+              </div>
+              <div class="p-3" id="<%= i.media.id %>Progress">
+                <%= i.progress %>/<%= i.media.episodes %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-primary" onclick="updateProgress(this, 'dec')">
+                  -
+                </button>
+                <button class="btn btn-primary" onclick="updateProgress(this, 'inc')">
+                  +
+                </button>
+              </div>
+            </div>
+          </li>
+          <% }); %>
+        </ul>
+      </div>
+
+      <div class="tab-pane fade" id="paused">
+        <ul class="list-group">
+          <% animeList.PAUSED.forEach(function(i){ %>
+          <li class="list-group-item" data-anime="<%= JSON.stringify(i) %>">
+            <div class="d-flex flex-row align-items-center">
+              <div class="mr-auto">
+                <img src="<%= i.media.coverImage.medium %>" class="anime-list-icon" />
+                <%= i.media.title.english || i.media.title.romaji %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-warning" onclick="showAnimeStatusModal(this)">
+                  Status
+                </button>
+              </div>
+              <div class="p-3" id="<%= i.media.id %>Progress">
+                <%= i.progress %>/<%= i.media.episodes %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-primary" onclick="updateProgress(this, 'dec')">
+                  -
+                </button>
+                <button class="btn btn-primary" onclick="updateProgress(this, 'inc')">
+                  +
+                </button>
+              </div>
+            </div>
+          </li>
+          <% }); %>
+        </ul>
+      </div>
+
+      <div class="tab-pane fade" id="repeating">
+        <ul class="list-group">
+          <% animeList.REPEATING.forEach(function(i){ %>
+          <li class="list-group-item" data-anime="<%= JSON.stringify(i) %>">
+            <div class="d-flex flex-row align-items-center">
+              <div class="mr-auto">
+                <img src="<%= i.media.coverImage.medium %>" class="anime-list-icon" />
+                <%= i.media.title.english || i.media.title.romaji %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-warning" onclick="showAnimeStatusModal(this)">
+                  Status
+                </button>
+              </div>
+              <div class="p-3" id="<%= i.media.id %>Progress">
+                <%= i.progress %>/<%= i.media.episodes %>
+              </div>
+              <div class="p-3">
+                <button class="btn btn-primary" onclick="updateProgress(this, 'dec')">
+                  -
+                </button>
+                <button class="btn btn-primary" onclick="updateProgress(this, 'inc')">
+                  +
+                </button>
+              </div>
+            </div>
+          </li>
+          <% }); %>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -148,155 +301,220 @@
 
       </div>
     </div>
+  </div>
 
-    <script>
-      // store pending changes to be applied
-      const changes = {};
+  <div class="modal" id="modalAnimeStatus">
+    <div class="modal-dialog">
+      <div class="modal-content">
 
-      // common request options for all requests
-      const requestOptions = {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      };
+        <div class="modal-header">
+          <h4 class="modal-title">Update Status</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
 
-      // append to changes global object
-      const addToChanges = (id, func) => {
-        changes[id] = func;
-        $("#btnSync").text(`Sync (${Object.keys(changes).length} Changes)`)
+        <div class="modal-body">
+          <form onsubmit="return false;">
+            <div class="form-group">
+              <label for="cmbAnimeStatus">Status:</label>
+              <select class="form-control" name="cmbAnimeStatus" id="cmbAnimeStatus">
+                <option value="CURRENT">Current (Watching)</option>
+                <option value="PLANNING">Planning</option>
+                <option value="PAUSED">Paused</option>
+                <option value="DROPPED">Dropped</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="REPEATING">Repeating</option>
+
+              </select>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+          <button id="btnSaveAnimeStatus" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // store pending changes to be applied
+    const changes = {};
+
+    // common request options for all requests
+    const requestOptions = {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+
+    // append to changes global object
+    const addToChanges = (id, func) => {
+      changes[id] = func;
+      $("#btnSync").text(`Sync (${Object.keys(changes).length} Changes)`)
+    }
+
+    // sync local changes and update anime list
+    const syncChanges = async () => {
+      const keys = Object.keys(changes);
+
+      for (let key of keys) {
+        const func = changes[key];
+        await func();
+        delete changes[key];
       }
 
-      // sync local changes and update anime list
-      const syncChanges = async () => {
-        const keys = Object.keys(changes);
+      updateAnimeList();
 
-        for (let key of keys) {
-          const func = changes[key];
-          await func();
-          delete changes[key];
+      $("#btnSync").text("Sync");
+    }
+
+    // sync anime list without cache from anilist
+    const updateAnimeList = () => {
+      fetch("/update_anime_list").then(res => {
+        return res.json();
+      }).then(data => {
+        if (data.status) {
+          setTimeout(() => window.location.reload(), 700);
+        } else {
+          console.log(data.error);
         }
+      }).catch(e => {
+        console.log(e);
+      })
+    }
 
-        updateAnimeList();
+    // update progress for a selected anime
+    const updateProgress = async (btn, type) => {
+      const listItem = $(btn).parent().parent().parent();
+      const mediaData = listItem.data("anime");
 
-        $("#btnSync").text("Sync");
+      let progress = parseInt($(`#${mediaData.media.id}Progress`).text().split("/")[0]);
+
+      if (type == "inc") {
+        progress++;
+        if (progress > mediaData.media.episodes) return;
+      } else {
+        progress--;
+        if (progress < 0) return;
       }
 
-      // sync anime list without cache from anilist
-      const updateAnimeList = () => {
-        fetch("/update_anime_list").then(res => {
-          return res.json();
-        }).then(data => {
-          if (data.status) {
-            setTimeout(() => window.location.reload(), 700);
-          } else {
-            console.log(data.error);
+      if (mediaData.progress != mediaData.media.episodes) {
+
+        $(`#${mediaData.media.id}Progress`).text(`${progress}/${mediaData.media.episodes}`);
+
+        addToChanges(mediaData.media.id,
+          async function () {
+            try {
+              const res = await fetch("/update_progress", {
+                ...requestOptions,
+                method: "put",
+                body: JSON.stringify({
+                  mediaId: mediaData.media.id,
+                  episodes: mediaData.media.episodes,
+                  malId: mediaData.media.idMal,
+                  progress: parseInt(mediaData.progress) + 1
+                }),
+              });
+
+              const parsedResponse = await res.json();
+              const data = parsedResponse.data;
+
+            } catch (e) {
+              console.log(e);
+            }
+          })
+      }
+    }
+
+
+    const loadAnilistTokenUrl = () => {
+      fetch("/anilist_auth_link").then(res => {
+        return res.json();
+      }).then(d => {
+        window.open(d.data, '_blank');
+      }).catch(e => {
+        console.log(e);
+      });
+    }
+
+    const loadMalTokenUrl = () => {
+      fetch("/mal_auth_link").then(res => {
+        return res.json();
+      }).then(d => {
+        window.open(d.data, '_blank');
+      }).catch(e => {
+        console.log(e);
+      })
+    }
+
+    const saveAuthInfo = () => {
+      fetch("/auth", {
+        ...requestOptions,
+        method: "post",
+        body: JSON.stringify({
+          mal: { authenticationCode: $("#txtMalAuthCode").val() },
+          anilist: {
+            username: $("#txtAnilistUsername").val(),
+            token: $("#txtAnilistToken").val()
           }
-        }).catch(e => {
-          console.log(e);
-        })
-      }
+        }),
+      }).then(res => {
+        return res.json();
+      }).then(data => {
+        if (data.status) {
+          window.alert("Authentication info saved!.");
+          $("#modalAuth").modal("hide");
+        } else {
+          console.log(data);
+          window.alert("Something went wrong!.");
+        }
+      }).catch(e => {
+        console.log(e);
+      });
+    }
 
-      // update progress for a selected anime
-      const updateProgress = async (btn, type) => {
+    const showAnimeStatusModal = (btn) => {
+      $("#modalAnimeStatus").modal();
+      $("#btnSaveAnimeStatus").off();
+
+      $("#btnSaveAnimeStatus").click(() => {
         const listItem = $(btn).parent().parent().parent();
         const mediaData = listItem.data("anime");
+        const status = $("#cmbAnimeStatus").val();
 
-        let progress = parseInt($(`#${mediaData.media.id}Progress`).text().split("/")[0]);
-
-        if (type == "inc") {
-          progress++;
-          if (progress > mediaData.media.episodes) return;
-        } else {
-          progress--;
-          if (progress < 0) return;
-        }
-
-        if (mediaData.progress != mediaData.media.episodes) {
-
-          $(`#${mediaData.media.id}Progress`).text(`${progress}/${mediaData.media.episodes}`);
-
-          addToChanges(mediaData.media.id,
-            async function () {
-              try {
-                const res = await fetch("/update_progress", {
-                  ...requestOptions,
-                  method: "put",
-                  body: JSON.stringify({
-                    mediaId: mediaData.media.id,
-                    episodes: mediaData.media.episodes,
-                    malId: mediaData.media.idMal,
-                    progress: parseInt(mediaData.progress) + 1
-                  }),
-                });
-
-                const parsedResponse = await res.json();
-                const data = parsedResponse.data;
-
-              } catch (e) {
-                console.log(e);
-              }
-            })
-        }
-      }
-
-
-      const loadAnilistTokenUrl = () => {
-        fetch("/anilist_auth_link").then(res => {
-          return res.json();
-        }).then(d => {
-          window.open(d.data, '_blank');
-        }).catch(e => {
-          console.log(e);
-        });
-      }
-
-      const loadMalTokenUrl = () => {
-        fetch("/mal_auth_link").then(res => {
-          return res.json();
-        }).then(d => {
-          window.open(d.data, '_blank');
+        fetch("/update_status", {
+          ...requestOptions,
+          method: "put",
+          body: JSON.stringify({
+            mediaId: mediaData.media.id,
+            malId: mediaData.media.idMal,
+            status: status
+          }),
+        }).then(res => {
+          return res.json()
+        }).then(data => {
+          const listItemHtml = listItem.html();
+          listItem.remove();
+          $(`#${status.toLowerCase()} .list-group`).prepend(listItemHtml);
         }).catch(e => {
           console.log(e);
         })
-      }
-
-      const saveAuthInfo = () => {
-        fetch("/auth", {
-          ...requestOptions,
-          method: "post",
-          body: JSON.stringify({
-            mal: { authenticationCode: $("#txtMalAuthCode").val() },
-            anilist: {
-              username: $("#txtAnilistUsername").val(),
-              token: $("#txtAnilistToken").val()
-            }
-          }),
-        }).then(res => {
-          return res.json();
-        }).then(data => {
-          if (data.status) {
-            window.alert("Authentication info saved!.");
-            $("#modalAuth").modal("hide");
-          } else {
-            console.log(data);
-            window.alert("Something went wrong!.");
-          }
-        }).catch(e => {
-          console.log(e);
-        });
-      }
-
-      // event listeners
-      $("#btnSync").click(syncChanges);
-      $("#btnAuth").click(() => {
-        $("#modalAuth").modal("show");
       });
-      $("#btnGenMalAuthCode").click(loadMalTokenUrl);
-      $("#btnGenAnilistToken").click(loadAnilistTokenUrl);
+    }
 
-      $("#btnSaveAuthInfo").click(saveAuthInfo);
-    </script>
+    // event listeners
+    $("#btnSync").click(syncChanges);
+    $("#btnAuth").click(() => {
+      $("#modalAuth").modal("show");
+    });
+    $("#btnGenMalAuthCode").click(loadMalTokenUrl);
+    $("#btnGenAnilistToken").click(loadAnilistTokenUrl);
+
+    $("#btnSaveAuthInfo").click(saveAuthInfo);
+  </script>
 
 </body>
 

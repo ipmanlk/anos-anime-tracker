@@ -65,6 +65,18 @@ app.put("/update_progress", (req, res) => {
 		});
 });
 
+app.put("/update_status", (req, res) => {
+	api
+		.updateStatus(req.body.mediaId, req.body.malId, req.body.status)
+		.then((data) => {
+			res.json({ status: true, data: data });
+		})
+		.catch((e) => {
+			console.log(e);
+			res.json({ status: false, msg: "Error updating progress." });
+		});
+});
+
 // route for displaying Authorization Code
 app.get("/oauth", (req, res) => {
 	res.send(

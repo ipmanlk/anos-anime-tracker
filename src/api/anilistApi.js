@@ -98,6 +98,26 @@ const getAnimeList = async (bypassCache = false) => {
 	return lists;
 };
 
+const updateStatus = async (mediaId, status) => {
+	const query = `
+	mutation {
+    SaveMediaListEntry (mediaId: ${mediaId}, status: ${status}) {
+        id
+    }
+}`;
+	const res = await fetch("https://graphql.anilist.co", {
+		...getRequestOptions(),
+		body: JSON.stringify({ query: query }),
+	});
+
+	const parsedResponse = await res.json();
+	const data = parsedResponse.data;
+
+	if (data == null) throw new Error("No data found in anilist response!");
+
+	return data;
+};
+
 const updateProgress = async (mediaId, episodes, progress) => {
 	const query = `
 	mutation {
@@ -124,4 +144,5 @@ const updateProgress = async (mediaId, episodes, progress) => {
 module.exports = {
 	getAnimeList,
 	updateProgress,
+	updateStatus,
 };
