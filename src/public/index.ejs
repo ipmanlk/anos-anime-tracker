@@ -23,11 +23,24 @@
     .list-group-item {
       padding: 0;
     }
+
+    .tab-content .container {
+      margin-left: 0;
+      margin-right: 0;
+    }
   </style>
 </head>
 
 <body>
-  <div class="container">
+  <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <a class="navbar-brand mr-auto" href="#">Anos</a>
+    <div>
+      <button class="btn btn-warning" id="btnAuth">Authenticate</button>
+      <button class="btn btn-success" id="btnSync">Sync</button>
+    </div>
+  </nav>
+
+  <div class="container-fluid mt-2">
     <!-- Nav tabs -->
     <ul class="nav nav-tabs">
       <li class="nav-item">
@@ -49,7 +62,6 @@
         <a class="nav-link" data-toggle="tab" href="#repeating">Repeating</a>
       </li>
     </ul>
-
     <!-- Tab panes -->
     <div class="tab-content">
       <div class="tab-pane container active" id="current">
@@ -65,10 +77,10 @@
                 <%= i.progress %>/<%= i.media.episodes %>
               </div>
               <div class="p-3">
-                <button class="btn btn-primary" onclick="decProgress(this)">
+                <button class="btn btn-primary" onclick="updateProgress(this, 'dec')">
                   -
                 </button>
-                <button class="btn btn-primary" onclick="incProgress(this)">
+                <button class="btn btn-primary" onclick="updateProgress(this, 'inc')">
                   +
                 </button>
               </div>
@@ -81,44 +93,192 @@
     </div>
   </div>
 
-  <script>
-    const requestOptions = {
-      method: "post",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    };
+  <!-- auth model -->
+  <div class="modal" id="modalAuth">
+    <div class="modal-dialog">
+      <div class="modal-content">
 
-    async function incProgress(btn) {
-      const listItem = $(btn).parent().parent().parent();
-      const mediaData = listItem.data("anime");
+        <div class="modal-header">
+          <h4 class="modal-title">Authenticate</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
 
-      if (mediaData.progress != mediaData.media.episodes) {
+        <div class="modal-body">
+          <form onsubmit="return false;">
+            <div class="from-group">
+              <label for="txtMalAuthCode">
+                MAL Auth Code:
+              </label>
+              <input type="text" class="form-control" id="txtMalAuthCode">
+              <button id="btnGenMalAuthCode" class="btn btn-primary btn-block mt-2">
+                Generate
+              </button>
+            </div>
+            <hr>
+            <div class="from-group">
+              <label for="txtAnilistToken">
+                Anilist Username:
+              </label>
+              <input type="text" class="form-control" id="txtAnilistUsername">
+            </div>
+            <div class="from-group mt-2">
+              <label for="txtAnilistToken">
+                Anilist Token:
+              </label>
+              <input type="text" class="form-control" id="txtAnilistToken">
+              <button id="btnGenAnilistToken" class="btn btn-primary btn-block mt-2">
+                Generate
+              </button>
+            </div>
+          </form>
+        </div>
 
-        const res = await fetch("/update_progress", {
-          ...requestOptions,
-          body: JSON.stringify({
-            mediaId: mediaData.media.id,
-            episodes: mediaData.media.episodes,
-            malId: mediaData.media.idMal,
-            progress: parseInt(mediaData.progress) + 1
-          }),
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+          <button id="btnSaveAuthInfo" type="button" class="btn btn-success" data-dismiss="modal">Save</button>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      const changes = {};
+
+      const requestOptions = {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      };
+
+      const addToChanges = (id, func) => {
+        changes[id] = func;
+        $("#btnSync").text(`Sync (${Object.keys(changes).length} Changes)`)
+      }
+
+      const syncChanges = () => {
+        const keys = Object.keys(changes);
+
+        keys.forEach(key => {
+          const func = changes[key];
+          func();
+          delete changes[key];
         });
 
-        const parsedResponse = await res.json();
-        const data = parsedResponse.data;
+        updateAnimeList();
 
-        console.log(data);
-
+        $("#btnSync").text("Sync");
       }
-    }
 
-    function decProgress(btn) {
-      console.log(e);
+      const updateAnimeList = () => {
+        fetch("/update_anime_list").then(res => {
+          return res.json();
+        }).then(data => {
+          if (data.status) {
+            setTimeout(() => window.location.reload(), 700);
+          } else {
+            console.log(data.error);
+          }
+        }).catch(e => {
+          console.log(e);
+        })
+      }
 
-    }
-  </script>
+      async function updateProgress(btn, type) {
+        const listItem = $(btn).parent().parent().parent();
+        const mediaData = listItem.data("anime");
+
+        let progress = parseInt($(`#${mediaData.media.id}Progress`).text().split("/")[0]);
+
+        if (type == "inc") {
+          progress++;
+          if (progress > mediaData.media.episodes) return;
+        } else {
+          progress--;
+          if (progress < 0) return;
+        }
+
+        if (mediaData.progress != mediaData.media.episodes) {
+
+          $(`#${mediaData.media.id}Progress`).text(`${progress}/${mediaData.media.episodes}`);
+
+          addToChanges(mediaData.media.id,
+            async function () {
+              try {
+                const res = await fetch("/update_progress", {
+                  ...requestOptions,
+                  method: "put",
+                  body: JSON.stringify({
+                    mediaId: mediaData.media.id,
+                    episodes: mediaData.media.episodes,
+                    malId: mediaData.media.idMal,
+                    progress: parseInt(mediaData.progress) + 1
+                  }),
+                });
+
+                const parsedResponse = await res.json();
+                const data = parsedResponse.data;
+
+              } catch (e) {
+                console.log(e);
+              }
+            })
+        }
+      }
+
+      $("#btnSync").click(syncChanges);
+      $("#btnAuth").click(function () {
+        $("#modalAuth").modal("show");
+      });
+
+      $("#btnGenMalAuthCode").click(function () {
+        fetch("/mal_auth_link").then(res => {
+          return res.json();
+        }).then(d => {
+          window.open(d.data, '_blank');
+        }).catch(e => {
+          console.log(e);
+        })
+      });
+
+      $("#btnGenAnilistToken").click(function () {
+        fetch("/anilist_auth_link").then(res => {
+          return res.json();
+        }).then(d => {
+          window.open(d.data, '_blank');
+        }).catch(e => {
+          console.log(e);
+        });
+      });
+
+      $("#btnSaveAuthInfo").click(function () {
+        fetch("/auth", {
+          ...requestOptions,
+          method: "post",
+          body: JSON.stringify({
+            mal: { authenticationCode: $("#txtMalAuthCode").val() },
+            anilist: {
+              username: $("#txtAnilistUsername").val(),
+              token: $("#txtAnilistToken").val()
+            }
+          }),
+        }).then(res => {
+          return res.json();
+        }).then(data => {
+          if (data.status) {
+            window.alert("Authentication info saved!.");
+            $("#modalAuth").modal("hide");
+          } else {
+            console.log(data);
+            window.alert("Something went wrong!.");
+          }
+        }).catch(e => {
+          console.log(e);
+        })
+      })
+
+
+    </script>
 
 </body>
 

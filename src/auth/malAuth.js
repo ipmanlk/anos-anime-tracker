@@ -1,18 +1,15 @@
 const fetch = require("node-fetch");
 const pkceChallenge = require("pkce-challenge");
-const readline = require("readline");
 const { writeFileSync } = require("fs");
 const querystring = require("querystring");
 const config = require("../../config/config.json");
 
-const rl = readline.createInterface({
-	input: process.stdin,
-	output: process.stdout,
-});
-
 // client info from https://myanimelist.net/apiconfig
 const clientId = config.mal.clientId;
 const clientSecret = config.mal.clientSecret;
+
+// store ongoing authentication process
+const currentAuthenticator = {};
 
 // Generate a new Code Verifier / Code Challenge.
 const getNewCodeVerifier = () => {
@@ -21,15 +18,15 @@ const getNewCodeVerifier = () => {
 };
 
 // Request new application authorization code using a url
-const requestAuthorizationCode = (codeChallenge) => {
-	return new Promise((resolve, reject) => {
-		const url = `https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id=${clientId}&code_challenge=${codeChallenge}`;
-		console.log(`Authorize your application by clicking here: ${url}\n\n`);
+const getAuthenticationUrl = () => {
+	const codeVerifier = getNewCodeVerifier();
+	const codeChallenge = codeVerifier;
 
-		rl.question("Copy & paste the Authorization Code:", (authorizationCode) => {
-			resolve(authorizationCode.trim());
-		});
-	});
+	currentAuthenticator["authenticator"] = {
+		codeVerifier,
+		codeChallenge,
+	};
+	return `https://myanimelist.net/v1/oauth2/authorize?response_type=code&client_id=${clientId}&code_challenge=${codeChallenge}`;
 };
 
 /* 
@@ -40,7 +37,7 @@ This example assumes your "App Redirect URL" is "http://localhost:3000/oauth" an
 your authorization code there using Express.js. If you get 404 error that means your redirect 
 url is different.
 */
-const generateNewToken = async (authorizationCode, codeVerifier) => {
+const generateAndSaveToken = async (authorizationCode) => {
 	const url = "https://myanimelist.net/v1/oauth2/token";
 
 	const options = {
@@ -52,28 +49,21 @@ const generateNewToken = async (authorizationCode, codeVerifier) => {
 			client_id: clientId,
 			client_secret: clientSecret,
 			code: authorizationCode,
-			code_verifier: codeVerifier,
+			code_verifier: currentAuthenticator["authenticator"].codeVerifier,
 			grant_type: "authorization_code",
 		}),
 	};
 
 	const res = await fetch(url, options);
 	const data = await res.json();
-	return data;
-};
 
-const generateToken = async () => {
-	const codeVerifier = getNewCodeVerifier();
-	const codeChallenge = codeVerifier;
-
-	const authorizationCode = await requestAuthorizationCode(codeChallenge);
-	const token = await generateNewToken(authorizationCode, codeVerifier);
-
-	if (!token.access_token || token.access_token.length < 300) {
-		throw new Error(token);
+	if (!data.access_token || data.access_token.length < 300) {
+		throw new Error(data);
 	}
 
-	writeFileSync(`${process.cwd()}/tokens/mal.json`, JSON.stringify(token));
+	writeFileSync(`${process.cwd()}/tokens/mal.json`, JSON.stringify(data));
+
+	return true;
 };
 
 const refreshToken = async () => {
@@ -105,6 +95,7 @@ const refreshToken = async () => {
 };
 
 module.exports = {
-	generateToken,
+	getAuthenticationUrl,
+	generateAndSaveToken,
 	refreshToken,
 };

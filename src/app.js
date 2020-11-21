@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const { checkAuth } = require("./auth");
+const { malAuth, anilistAuth } = require("./auth");
 const api = require("./api");
 
 const app = express();
@@ -18,7 +18,37 @@ app.get("/", async (req, res) => {
 	});
 });
 
-app.post("/update_progress", (req, res) => {
+app.get("/mal_auth_link", (req, res) => {
+	res.json({ status: true, data: malAuth.getAuthenticationUrl() });
+});
+
+app.get("/anilist_auth_link", (req, res) => {
+	res.json({ status: true, data: anilistAuth.getTokenLink() });
+});
+
+app.post("/auth", async (req, res) => {
+	try {
+		await malAuth.generateAndSaveToken(req.body.mal.authenticationCode);
+		await anilistAuth.saveToken(
+			req.body.anilist.username,
+			req.body.anilist.token
+		);
+		res.send({ status: true });
+	} catch (e) {
+		res.send({ status: false, error: e.toString() });
+	}
+});
+
+app.get("/update_anime_list", (req, res) => {
+	api
+		.getAnimeList(true)
+		.then((r) => {
+			res.json({ status: true });
+		})
+		.catch((e) => res.json({ status: false, error: e.toString() }));
+});
+
+app.put("/update_progress", (req, res) => {
 	api
 		.updateProgress(
 			req.body.mediaId,
@@ -44,8 +74,8 @@ app.get("/oauth", (req, res) => {
 });
 
 const init = async () => {
-	const success = await checkAuth();
-	if (!success) throw new Error("Authentication failed!");
+	// const success = await checkAuth();
+	// if (!success) throw new Error("Authentication failed!");
 
 	console.log(`Server is running at ${port}!`);
 };
