@@ -28,6 +28,10 @@
       margin-left: 0;
       margin-right: 0;
     }
+
+    .list-group-item:hover {
+      background-color: rgb(211, 211, 211);
+    }
   </style>
 </head>
 
@@ -39,6 +43,7 @@
       <button class="btn btn-success" id="btnSync">Sync</button>
     </div>
   </nav>
+
 
   <div class="container-fluid mt-2">
     <!-- Nav tabs -->
@@ -62,6 +67,8 @@
         <a class="nav-link" data-toggle="tab" href="#repeating">Repeating</a>
       </li>
     </ul>
+
+
     <!-- Tab panes -->
     <div class="tab-content">
       <div class="tab-pane container active" id="current">
@@ -73,6 +80,7 @@
                 <img src="<%= i.media.coverImage.medium %>" class="anime-list-icon" />
                 <%= i.media.title.english || i.media.title.romaji %>
               </div>
+
               <div class="p-3" id="<%= i.media.id %>Progress">
                 <%= i.progress %>/<%= i.media.episodes %>
               </div>
@@ -142,8 +150,10 @@
     </div>
 
     <script>
+      // store pending changes to be applied
       const changes = {};
 
+      // common request options for all requests
       const requestOptions = {
         headers: {
           "Content-Type": "application/json",
@@ -151,25 +161,28 @@
         },
       };
 
+      // append to changes global object
       const addToChanges = (id, func) => {
         changes[id] = func;
         $("#btnSync").text(`Sync (${Object.keys(changes).length} Changes)`)
       }
 
-      const syncChanges = () => {
+      // sync local changes and update anime list
+      const syncChanges = async () => {
         const keys = Object.keys(changes);
 
-        keys.forEach(key => {
+        for (let key of keys) {
           const func = changes[key];
-          func();
+          await func();
           delete changes[key];
-        });
+        }
 
         updateAnimeList();
 
         $("#btnSync").text("Sync");
       }
 
+      // sync anime list without cache from anilist
       const updateAnimeList = () => {
         fetch("/update_anime_list").then(res => {
           return res.json();
@@ -184,7 +197,8 @@
         })
       }
 
-      async function updateProgress(btn, type) {
+      // update progress for a selected anime
+      const updateProgress = async (btn, type) => {
         const listItem = $(btn).parent().parent().parent();
         const mediaData = listItem.data("anime");
 
@@ -226,22 +240,8 @@
         }
       }
 
-      $("#btnSync").click(syncChanges);
-      $("#btnAuth").click(function () {
-        $("#modalAuth").modal("show");
-      });
 
-      $("#btnGenMalAuthCode").click(function () {
-        fetch("/mal_auth_link").then(res => {
-          return res.json();
-        }).then(d => {
-          window.open(d.data, '_blank');
-        }).catch(e => {
-          console.log(e);
-        })
-      });
-
-      $("#btnGenAnilistToken").click(function () {
+      const loadAnilistTokenUrl = () => {
         fetch("/anilist_auth_link").then(res => {
           return res.json();
         }).then(d => {
@@ -249,9 +249,19 @@
         }).catch(e => {
           console.log(e);
         });
-      });
+      }
 
-      $("#btnSaveAuthInfo").click(function () {
+      const loadMalTokenUrl = () => {
+        fetch("/mal_auth_link").then(res => {
+          return res.json();
+        }).then(d => {
+          window.open(d.data, '_blank');
+        }).catch(e => {
+          console.log(e);
+        })
+      }
+
+      const saveAuthInfo = () => {
         fetch("/auth", {
           ...requestOptions,
           method: "post",
@@ -274,10 +284,18 @@
           }
         }).catch(e => {
           console.log(e);
-        })
-      })
+        });
+      }
 
+      // event listeners
+      $("#btnSync").click(syncChanges);
+      $("#btnAuth").click(() => {
+        $("#modalAuth").modal("show");
+      });
+      $("#btnGenMalAuthCode").click(loadMalTokenUrl);
+      $("#btnGenAnilistToken").click(loadAnilistTokenUrl);
 
+      $("#btnSaveAuthInfo").click(saveAuthInfo);
     </script>
 
 </body>
